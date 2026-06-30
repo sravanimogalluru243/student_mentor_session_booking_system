@@ -1,1 +1,0 @@
-print("Hello, welcome to the Student Mentor Session Booking System!")
