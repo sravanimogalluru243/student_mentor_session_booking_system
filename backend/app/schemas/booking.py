@@ -18,3 +18,4 @@ class BookingRead(BookingBase):
 
     class Config:
         from_attributes = True
+

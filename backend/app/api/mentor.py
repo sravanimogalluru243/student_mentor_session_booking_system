@@ -17,3 +17,4 @@ def create_mentor(mentor_in: MentorCreate, db: Session = Depends(get_db)):
 @router.get("/", response_model=List[MentorRead])
 def list_mentors(db: Session = Depends(get_db)):
 	return mentor_service.list_mentors(db)
+

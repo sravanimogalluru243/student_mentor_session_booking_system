@@ -11,13 +11,13 @@ router = APIRouter(prefix="/feedback", tags=["feedback"])
 
 @router.post("/", response_model=FeedbackRead)
 def create_feedback(feedback_in: FeedbackCreate, db: Session = Depends(get_db)):
-	fb = Feedback(**feedback_in.dict())
-	db.add(fb)
-	db.commit()
-	db.refresh(fb)
-	return fb
+    fb = Feedback(**feedback_in.dict())
+    db.add(fb)
+    db.commit()
+    db.refresh(fb)
+    return fb
 
 
 @router.get("/", response_model=List[FeedbackRead])
 def list_feedbacks(db: Session = Depends(get_db)):
-	return db.query(Feedback).all()
+    return db.query(Feedback).all()
