@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 
 from app.database.connection import engine, Base
-from app.api import booking, mentor, session, feedback, auth
+from app.api import booking, mentor, session, feedback, auth, student, admin
 
 
 def create_app() -> FastAPI:
@@ -12,6 +12,8 @@ def create_app() -> FastAPI:
     app.include_router(session.router)
     app.include_router(booking.router)
     app.include_router(feedback.router)
+    app.include_router(student.router)
+    app.include_router(admin.router)
 
     return app
 

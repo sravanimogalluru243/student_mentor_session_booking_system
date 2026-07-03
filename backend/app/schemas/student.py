@@ -1,4 +1,5 @@
 ﻿from pydantic import BaseModel, EmailStr
+from typing import Optional
 
 
 class StudentBase(BaseModel):
@@ -8,6 +9,11 @@ class StudentBase(BaseModel):
 
 class StudentCreate(StudentBase):
     password: str
+
+
+class StudentUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
 
 
 class StudentRead(StudentBase):
