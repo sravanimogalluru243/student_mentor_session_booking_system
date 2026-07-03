@@ -15,3 +15,8 @@ class StudentRead(StudentBase):
 
     class Config:
         from_attributes = True
+
+
+class PasswordChangeRequest(BaseModel):
+    old_password: str
+    new_password: str

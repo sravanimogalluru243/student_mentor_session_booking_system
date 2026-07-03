@@ -1,17 +1,22 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-# SQLite for local development; replace with your DB URL in production
-DATABASE_URL = "sqlite:///./dev.db"
+DATABASE_URL = "postgresql://postgres:admin123@localhost:5433/student_mentor_db"
 
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+engine = create_engine(DATABASE_URL)
+
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine
+)
+
 Base = declarative_base()
 
 
 def get_db():
-	db = SessionLocal()
-	try:
-		yield db
-	finally:
-		db.close()
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
