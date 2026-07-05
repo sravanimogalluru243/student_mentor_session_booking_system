@@ -1,30 +1,65 @@
-from typing import List, Optional
+from fastapi import HTTPException
+from sqlalchemy.orm import Session
 
 from app.models.booking import Booking
+from app.models.feedback import Feedback
 from app.models.student import Student
-from app.schemas.student import StudentUpdate
+from app.services.auth_service import get_password_hash
 
 
-def get_profile(db, student_id: int) -> Optional[Student]:
-    return db.query(Student).filter(Student.id == student_id).first()
+def get_all_students(db: Session) -> list[Student]:
+    return db.query(Student).all()
 
 
-def update_profile(db, student_id: int, student_in: StudentUpdate) -> Optional[Student]:
+def get_student_by_id(db: Session, student_id: int) -> Student:
     student = db.query(Student).filter(Student.id == student_id).first()
     if not student:
-        return None
-    if student_in.name is not None:
-        student.name = student_in.name
-    if student_in.email is not None:
-        student.email = student_in.email
+        raise HTTPException(status_code=404, detail="Student not found")
+    return student
+
+
+def update_student(db: Session, student_id: int, student_in) -> Student:
+    student = get_student_by_id(db, student_id)
+    updates = _schema_updates(student_in)
+    if "password" in updates:
+        updates["password"] = get_password_hash(updates["password"])
+
+    for field, value in updates.items():
+        setattr(student, field, value)
+
     db.commit()
     db.refresh(student)
     return student
 
 
-def get_student_bookings(db, student_id: int) -> List[Booking]:
-    return db.query(Booking).filter(Booking.student_id == student_id).all()
+def delete_student(db: Session, student_id: int) -> dict:
+    student = get_student_by_id(db, student_id)
+    db.delete(student)
+    db.commit()
+    return {"message": "Student deleted successfully"}
 
 
-def get_booking_history(db, student_id: int) -> List[Booking]:
-    return db.query(Booking).filter(Booking.student_id == student_id).order_by(Booking.booked_at.desc()).all()
+def dashboard(db: Session, student_id: int) -> dict:
+    student = get_student_by_id(db, student_id)
+    return {
+        "student_name": student.full_name,
+        "total_bookings": db.query(Booking).filter(Booking.student_id == student.id).count(),
+        "completed_sessions": db.query(Booking).filter(
+            Booking.student_id == student.id,
+            Booking.status == "Completed",
+        ).count(),
+        "pending_sessions": db.query(Booking).filter(
+            Booking.student_id == student.id,
+            Booking.status == "Pending",
+        ).count(),
+    }
+
+
+def my_feedback(db: Session, student_id: int) -> list[Feedback]:
+    return db.query(Feedback).filter(Feedback.student_id == student_id).all()
+
+
+def _schema_updates(schema) -> dict:
+    if hasattr(schema, "model_dump"):
+        return schema.model_dump(exclude_unset=True)
+    return schema.dict(exclude_unset=True)
