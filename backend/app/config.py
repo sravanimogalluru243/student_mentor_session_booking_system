@@ -14,7 +14,7 @@ class Settings:
         self.app_name = os.getenv("APP_NAME", "Student Mentor Booking")
         self.database_url = os.getenv(
             "DATABASE_URL",
-            "postgresql://postgres:123456@localhost:5432/student_mentor_db",
+            "postgresql://postgres:123456789@localhost:5432/student_mentor_db",
         )
         self.secret_key = os.getenv("SECRET_KEY", "change-me-in-production")
         self.algorithm = os.getenv("ALGORITHM", "HS256")

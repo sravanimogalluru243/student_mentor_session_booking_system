@@ -1,58 +1,52 @@
-from typing import List, Optional
+from sqlalchemy.orm import Session
 
-from app.models.admin import Admin
-from app.services.auth_service import get_password_hash
-
-
-def create_admin(db, name: str, email: str, password: str, is_superuser: bool = False) -> Admin:
-    existing = db.query(Admin).filter(Admin.email == email).first()
-    if existing:
-        return None
-    admin = Admin(
-        name=name,
-        email=email,
-        hashed_password=get_password_hash(password),
-        is_superuser=is_superuser,
-    )
-    db.add(admin)
-    db.commit()
-    db.refresh(admin)
-    return admin
+from app.models.booking import Booking
+from app.models.feedback import Feedback
+from app.models.mentor import Mentor
+from app.models.student import Student
+from app.services import mentor_service, student_service
 
 
-def get_admin(db, admin_id: int) -> Optional[Admin]:
-    return db.query(Admin).filter(Admin.id == admin_id).first()
+def dashboard(db: Session) -> dict:
+    return {
+        "total_students": db.query(Student).count(),
+        "total_mentors": db.query(Mentor).count(),
+        "total_bookings": db.query(Booking).count(),
+        "total_feedbacks": db.query(Feedback).count(),
+    }
 
 
-def get_admin_by_email(db, email: str) -> Optional[Admin]:
-    return db.query(Admin).filter(Admin.email == email).first()
+def get_students(db: Session) -> list[Student]:
+    return db.query(Student).all()
 
 
-def list_admins(db) -> List[Admin]:
-    return db.query(Admin).all()
+def get_mentors(db: Session) -> list[Mentor]:
+    return db.query(Mentor).all()
 
 
-def update_admin(db, admin_id: int, name: Optional[str] = None, email: Optional[str] = None, password: Optional[str] = None, is_superuser: Optional[bool] = None) -> Optional[Admin]:
-    admin = db.query(Admin).filter(Admin.id == admin_id).first()
-    if not admin:
-        return None
-    if name is not None:
-        admin.name = name
-    if email is not None:
-        admin.email = email
-    if password is not None:
-        admin.hashed_password = get_password_hash(password)
-    if is_superuser is not None:
-        admin.is_superuser = is_superuser
-    db.commit()
-    db.refresh(admin)
-    return admin
+def get_bookings(db: Session) -> list[Booking]:
+    return db.query(Booking).all()
 
 
-def delete_admin(db, admin_id: int) -> bool:
-    admin = db.query(Admin).filter(Admin.id == admin_id).first()
-    if not admin:
-        return False
-    db.delete(admin)
-    db.commit()
-    return True
+def get_feedback(db: Session) -> list[Feedback]:
+    return db.query(Feedback).all()
+
+
+def create_mentor(db: Session, mentor):
+    return mentor_service.create_mentor(db, mentor)
+
+
+def update_mentor(db: Session, mentor_id: int, mentor):
+    return mentor_service.update_mentor(db, mentor_id, mentor)
+
+
+def delete_mentor(db: Session, mentor_id: int):
+    return mentor_service.delete_mentor(db, mentor_id)
+
+
+def update_student(db: Session, student_id: int, student):
+    return student_service.update_student(db, student_id, student)
+
+
+def delete_student(db: Session, student_id: int):
+    return student_service.delete_student(db, student_id)

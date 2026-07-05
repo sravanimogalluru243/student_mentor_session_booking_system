@@ -1,28 +1,29 @@
-﻿from pydantic import BaseModel, EmailStr
 from typing import Optional
 
+from pydantic import BaseModel, EmailStr
 
-class StudentBase(BaseModel):
-    name: str
+
+class StudentCreate(BaseModel):
+    full_name: str
     email: EmailStr
-
-
-class StudentCreate(StudentBase):
+    course: Optional[str] = None
+    phone: Optional[str] = None
     password: str
 
 
 class StudentUpdate(BaseModel):
-    name: Optional[str] = None
-    email: Optional[EmailStr] = None
+    full_name: Optional[str] = None
+    course: Optional[str] = None
+    phone: Optional[str] = None
+    password: Optional[str] = None
 
 
-class StudentRead(StudentBase):
+class StudentRead(BaseModel):
     id: int
+    full_name: str
+    email: EmailStr
+    course: Optional[str] = None
+    phone: Optional[str] = None
 
     class Config:
         from_attributes = True
-
-
-class PasswordChangeRequest(BaseModel):
-    old_password: str
-    new_password: str

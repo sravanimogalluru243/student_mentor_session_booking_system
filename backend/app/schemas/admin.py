@@ -1,27 +1,36 @@
-from pydantic import BaseModel, EmailStr
 from typing import Optional
 
+from pydantic import BaseModel, EmailStr
 
-class AdminBase(BaseModel):
-    name: str
+from app.schemas.booking import BookingResponse as BookingResponse
+from app.schemas.feedback import FeedbackResponse as FeedbackResponse
+from app.schemas.mentor import MentorCreate, MentorRead as MentorResponse, MentorUpdate
+from app.schemas.student import StudentRead as StudentResponse
+
+
+class AdminCreate(BaseModel):
+    full_name: str
     email: EmailStr
-
-
-class AdminCreate(AdminBase):
     password: str
-    is_superuser: Optional[bool] = False
 
 
 class AdminUpdate(BaseModel):
-    name: Optional[str] = None
-    email: Optional[EmailStr] = None
+    full_name: Optional[str] = None
     password: Optional[str] = None
-    is_superuser: Optional[bool] = None
 
 
-class AdminRead(AdminBase):
+class AdminRead(BaseModel):
     id: int
-    is_superuser: bool
+    full_name: str
+    email: EmailStr
 
     class Config:
         from_attributes = True
+
+
+class DashboardResponse(BaseModel):
+    total_students: int
+    total_mentors: int
+    total_bookings: int
+    total_feedbacks: int
+
