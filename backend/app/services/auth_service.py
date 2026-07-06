@@ -7,12 +7,19 @@ from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
+<<<<<<< HEAD
+from app.models.student import Student
+from app.schemas.student import StudentCreate
+
+settings = get_settings()
+=======
 from app.models.admin import Admin
 from app.models.mentor import Mentor
 from app.models.student import Student
 from app.schemas.student import StudentCreate
 
 
+>>>>>>> 8d31cf279cf337a3dad00309c9e565a1798ce1e4
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
@@ -56,6 +63,14 @@ def authenticate_student(db: Session, email: str, password: str) -> Optional[Stu
     return _authenticate(db, Student, email, password)
 
 
+<<<<<<< HEAD
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+    settings = get_settings()
+    to_encode = data.copy()
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=settings.access_token_expire_minutes))
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
+=======
 def authenticate_mentor(db: Session, email: str, password: str) -> Optional[Mentor]:
     return _authenticate(db, Mentor, email, password)
 
@@ -69,3 +84,4 @@ def _authenticate(db: Session, model, email: str, password: str):
     if not user or not verify_password(password, user.password):
         return None
     return user
+>>>>>>> 8d31cf279cf337a3dad00309c9e565a1798ce1e4
