@@ -23,6 +23,7 @@ class Booking(Base):
     booking_time = Column(Time, nullable=False)
 
     status = Column(String(20), default="Pending")
+    attendance = Column(String(20), nullable=True)
 
     student = relationship(
         "Student",

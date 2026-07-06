@@ -4,16 +4,20 @@ from sqlalchemy.orm import Session
 from app.database.connection import get_db
 from app.dependencies import get_current_admin
 from app.models.admin import Admin
+
 from app.schemas.admin import DashboardResponse
 from app.schemas.booking import BookingResponse
 from app.schemas.feedback import FeedbackResponse
 from app.schemas.mentor import MentorCreate, MentorRead, MentorUpdate
 from app.schemas.student import StudentRead, StudentUpdate
-from app.services import admin_service
+from app.schemas.session import SessionRead
 
+from app.services import admin_service
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
+
+# ================= Dashboard =================
 
 @router.get("/dashboard", response_model=DashboardResponse)
 def dashboard(
@@ -22,6 +26,8 @@ def dashboard(
 ):
     return admin_service.dashboard(db)
 
+
+# ================= Students =================
 
 @router.get("/students", response_model=list[StudentRead])
 def get_students(
@@ -49,6 +55,8 @@ def delete_student(
 ):
     return admin_service.delete_student(db, student_id)
 
+
+# ================= Mentors =================
 
 @router.get("/mentors", response_model=list[MentorRead])
 def get_mentors(
@@ -86,6 +94,18 @@ def delete_mentor(
     return admin_service.delete_mentor(db, mentor_id)
 
 
+# ================= Sessions =================
+
+@router.get("/sessions", response_model=list[SessionRead])
+def get_sessions(
+    db: Session = Depends(get_db),
+    current_admin: Admin = Depends(get_current_admin),
+):
+    return admin_service.get_sessions(db)
+
+
+# ================= Bookings =================
+
 @router.get("/bookings", response_model=list[BookingResponse])
 def get_bookings(
     db: Session = Depends(get_db),
@@ -93,6 +113,8 @@ def get_bookings(
 ):
     return admin_service.get_bookings(db)
 
+
+# ================= Feedback =================
 
 @router.get("/feedback", response_model=list[FeedbackResponse])
 def get_feedback(

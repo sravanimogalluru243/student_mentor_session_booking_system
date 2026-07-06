@@ -24,9 +24,10 @@ class BookingResponse(BaseModel):
     booking_date: date
     booking_time: time
     status: str
+    attendance: Optional[str] = None
+
     student: Optional[StudentRead] = None
     mentor: Optional[MentorRead] = None
-
     class Config:
         from_attributes = True
 

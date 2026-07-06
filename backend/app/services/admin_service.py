@@ -5,7 +5,10 @@ from app.models.feedback import Feedback
 from app.models.mentor import Mentor
 from app.models.student import Student
 from app.services import mentor_service, student_service
+from app.models.booking import Booking
 
+def get_sessions(db: Session):
+    return db.query(Booking).all()
 
 def dashboard(db: Session) -> dict:
     return {

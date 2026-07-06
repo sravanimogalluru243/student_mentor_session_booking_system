@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
 
 from app.database.connection import get_db
 from app.dependencies import get_current_admin, get_current_mentor
@@ -7,11 +8,21 @@ from app.models.admin import Admin
 from app.models.mentor import Mentor
 from app.schemas.booking import BookingResponse
 from app.schemas.feedback import FeedbackResponse
-from app.schemas.mentor import AvailabilityCreate, AvailabilityRead, MentorCreate, MentorRead, MentorUpdate
+from app.schemas.mentor import (
+    AvailabilityCreate,
+    AvailabilityRead,
+    MentorCreate,
+    MentorRead,
+    MentorUpdate,
+)
 from app.services import booking_service, mentor_service
 
 
 router = APIRouter(prefix="/mentors", tags=["Mentors"])
+
+
+class AttendanceUpdate(BaseModel):
+    attendance: str
 
 
 @router.get("/", response_model=list[MentorRead])
@@ -97,6 +108,20 @@ def complete_booking(
         current_mentor.id,
         booking_id,
         "Completed",
+    )
+
+
+@router.patch("/bookings/{booking_id}/attendance", response_model=BookingResponse)
+def mark_attendance(
+    booking_id: int,
+    payload: AttendanceUpdate,
+    db: Session = Depends(get_db),
+    current_mentor: Mentor = Depends(get_current_mentor),
+):
+    return mentor_service.mark_attendance(
+        db,
+        booking_id,
+        payload.attendance,
     )
 
 

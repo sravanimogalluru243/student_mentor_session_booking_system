@@ -1,6 +1,7 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-
+from fastapi import HTTPException
+from app.models.booking import Booking
 from app.models.availability import Availability
 from app.models.booking import Booking
 from app.models.feedback import Feedback
@@ -92,3 +93,21 @@ def _schema_updates(schema) -> dict:
     if hasattr(schema, "model_dump"):
         return schema.model_dump(exclude_unset=True)
     return schema.dict(exclude_unset=True)
+
+
+def mark_attendance(db: Session, booking_id: int, attendance: str):
+    booking = db.query(Booking).filter(Booking.id == booking_id).first()
+
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+
+    if attendance not in ["Present", "Absent"]:
+        raise HTTPException(status_code=400, detail="Attendance must be Present or Absent")
+
+    booking.attendance = attendance
+    booking.status = "Completed"
+
+    db.commit()
+    db.refresh(booking)
+
+    return booking
