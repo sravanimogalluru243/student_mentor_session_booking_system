@@ -23,5 +23,5 @@ app = create_app()
 
 @app.on_event("startup")
 def on_startup():
-    # create tables for local development (SQLite)
+    
     Base.metadata.create_all(bind=engine)
