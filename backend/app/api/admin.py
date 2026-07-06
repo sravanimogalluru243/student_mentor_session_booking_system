@@ -1,54 +1,102 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.database.connection import get_db
+from app.dependencies import get_current_admin
 from app.models.admin import Admin
-from app.services.auth_service import get_password_hash
-
-router = APIRouter(prefix="/admin", tags=["admin"])
-
-
-@router.get("/")
-def list_admins(db: Session = Depends(get_db)):
-    admins = db.query(Admin).all()
-    return [{"id": a.id, "name": a.name, "email": a.email, "is_superuser": a.is_superuser} for a in admins]
+from app.schemas.admin import DashboardResponse
+from app.schemas.booking import BookingResponse
+from app.schemas.feedback import FeedbackResponse
+from app.schemas.mentor import MentorCreate, MentorRead, MentorUpdate
+from app.schemas.student import StudentRead, StudentUpdate
+from app.services import admin_service
 
 
-@router.get("/{admin_id}")
-def get_admin(admin_id: int, db: Session = Depends(get_db)):
-    admin = db.query(Admin).filter(Admin.id == admin_id).first()
-    if not admin:
-        raise HTTPException(status_code=404, detail="Admin not found")
-    return {"id": admin.id, "name": admin.name, "email": admin.email, "is_superuser": admin.is_superuser}
+router = APIRouter(prefix="/admin", tags=["Admin"])
 
 
-@router.put("/{admin_id}")
-def update_admin(admin_id: int, name: str | None = None, email: str | None = None, password: str | None = None, is_superuser: bool | None = None, db: Session = Depends(get_db)):
-    admin = db.query(Admin).filter(Admin.id == admin_id).first()
-    if not admin:
-        raise HTTPException(status_code=404, detail="Admin not found")
-    if name is not None:
-        admin.name = name
-    if email is not None:
-        # ensure unique
-        existing = db.query(Admin).filter(Admin.email == email, Admin.id != admin_id).first()
-        if existing:
-            raise HTTPException(status_code=400, detail="Email already in use")
-        admin.email = email
-    if password is not None:
-        admin.hashed_password = get_password_hash(password)
-    if is_superuser is not None:
-        admin.is_superuser = is_superuser
-    db.commit()
-    db.refresh(admin)
-    return {"id": admin.id, "name": admin.name, "email": admin.email, "is_superuser": admin.is_superuser}
+@router.get("/dashboard", response_model=DashboardResponse)
+def dashboard(
+    db: Session = Depends(get_db),
+    current_admin: Admin = Depends(get_current_admin),
+):
+    return admin_service.dashboard(db)
 
 
-@router.delete("/{admin_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_admin(admin_id: int, db: Session = Depends(get_db)):
-    admin = db.query(Admin).filter(Admin.id == admin_id).first()
-    if not admin:
-        raise HTTPException(status_code=404, detail="Admin not found")
-    db.delete(admin)
-    db.commit()
-    return None
+@router.get("/students", response_model=list[StudentRead])
+def get_students(
+    db: Session = Depends(get_db),
+    current_admin: Admin = Depends(get_current_admin),
+):
+    return admin_service.get_students(db)
+
+
+@router.put("/students/{student_id}", response_model=StudentRead)
+def update_student(
+    student_id: int,
+    student: StudentUpdate,
+    db: Session = Depends(get_db),
+    current_admin: Admin = Depends(get_current_admin),
+):
+    return admin_service.update_student(db, student_id, student)
+
+
+@router.delete("/students/{student_id}")
+def delete_student(
+    student_id: int,
+    db: Session = Depends(get_db),
+    current_admin: Admin = Depends(get_current_admin),
+):
+    return admin_service.delete_student(db, student_id)
+
+
+@router.get("/mentors", response_model=list[MentorRead])
+def get_mentors(
+    db: Session = Depends(get_db),
+    current_admin: Admin = Depends(get_current_admin),
+):
+    return admin_service.get_mentors(db)
+
+
+@router.post("/mentors", response_model=MentorRead)
+def create_mentor(
+    mentor: MentorCreate,
+    db: Session = Depends(get_db),
+    current_admin: Admin = Depends(get_current_admin),
+):
+    return admin_service.create_mentor(db, mentor)
+
+
+@router.put("/mentors/{mentor_id}", response_model=MentorRead)
+def update_mentor(
+    mentor_id: int,
+    mentor: MentorUpdate,
+    db: Session = Depends(get_db),
+    current_admin: Admin = Depends(get_current_admin),
+):
+    return admin_service.update_mentor(db, mentor_id, mentor)
+
+
+@router.delete("/mentors/{mentor_id}")
+def delete_mentor(
+    mentor_id: int,
+    db: Session = Depends(get_db),
+    current_admin: Admin = Depends(get_current_admin),
+):
+    return admin_service.delete_mentor(db, mentor_id)
+
+
+@router.get("/bookings", response_model=list[BookingResponse])
+def get_bookings(
+    db: Session = Depends(get_db),
+    current_admin: Admin = Depends(get_current_admin),
+):
+    return admin_service.get_bookings(db)
+
+
+@router.get("/feedback", response_model=list[FeedbackResponse])
+def get_feedback(
+    db: Session = Depends(get_db),
+    current_admin: Admin = Depends(get_current_admin),
+):
+    return admin_service.get_feedback(db)

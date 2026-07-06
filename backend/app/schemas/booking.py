@@ -1,21 +1,34 @@
-﻿from pydantic import BaseModel
-from datetime import datetime
+from datetime import date, time
 from typing import Optional
 
+from pydantic import BaseModel
 
-class BookingBase(BaseModel):
-    student_id: int
-    session_id: int
-    booked_at: Optional[datetime] = None
-
-
-class BookingCreate(BookingBase):
-    pass
+from app.schemas.mentor import MentorRead
+from app.schemas.student import StudentRead
 
 
-class BookingRead(BookingBase):
+class BookingCreate(BaseModel):
+    mentor_id: int
+    booking_date: date
+    booking_time: time
+
+
+class BookingStatusUpdate(BaseModel):
+    status: str
+
+
+class BookingResponse(BaseModel):
     id: int
+    student_id: int
+    mentor_id: int
+    booking_date: date
+    booking_time: time
+    status: str
+    student: Optional[StudentRead] = None
+    mentor: Optional[MentorRead] = None
 
     class Config:
         from_attributes = True
 
+
+BookingRead = BookingResponse

@@ -1,27 +1,42 @@
-from fastapi import APIRouter, Depends, HTTPException
-from typing import List
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.schemas.session import SessionCreate, SessionRead, SessionUpdate
 from app.database.connection import get_db
-from app.services import session_service
-
-router = APIRouter(prefix="/sessions", tags=["sessions"])
-
-
-@router.post("/", response_model=SessionRead)
-def create_session(session_in: SessionCreate, db: Session = Depends(get_db)):
-	return session_service.create_session(db, session_in)
+from app.dependencies import get_current_mentor, get_current_student
+from app.models.mentor import Mentor
+from app.models.student import Student
+from app.schemas.booking import BookingResponse
+from app.services import booking_service
 
 
-@router.get("/", response_model=List[SessionRead])
-def list_sessions(mentor_id: int = None, db: Session = Depends(get_db)):
-	return session_service.list_sessions(db, mentor_id=mentor_id)
+router = APIRouter(prefix="/sessions", tags=["Sessions"])
 
 
-@router.put("/{session_id}", response_model=SessionRead)
-def update_session(session_id: int, session_in: SessionUpdate, db: Session = Depends(get_db)):
-	updated = session_service.update_session(db, session_id, session_in)
-	if not updated:
-		raise HTTPException(status_code=404, detail="Session not found")
-	return updated
+@router.get("/student", response_model=list[BookingResponse])
+def get_student_sessions(
+    db: Session = Depends(get_db),
+    current_student: Student = Depends(get_current_student),
+):
+    return booking_service.get_student_bookings(db, current_student.id)
+
+
+@router.get("/mentor", response_model=list[BookingResponse])
+def get_mentor_sessions(
+    db: Session = Depends(get_db),
+    current_mentor: Mentor = Depends(get_current_mentor),
+):
+    return booking_service.get_mentor_bookings(db, current_mentor.id)
+
+
+@router.patch("/{booking_id}/complete", response_model=BookingResponse)
+def complete_session(
+    booking_id: int,
+    db: Session = Depends(get_db),
+    current_mentor: Mentor = Depends(get_current_mentor),
+):
+    return booking_service.mentor_update_booking_status(
+        db,
+        current_mentor.id,
+        booking_id,
+        "Completed",
+    )
